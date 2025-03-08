@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Universal JSON Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <h1>Universal JSON Dashboard</h1>
+  <div class="subtitle">Upload any JSON file and let the dashboard generate insights for you!</div>
+
+  <!-- Upload Section -->
+  <div class="upload-section">
+    <input type="file" id="fileInput" accept=".json" />
+    <label for="fileInput">Choose JSON File</label>
+    <button onclick="handleFileUpload()">Upload</button>
+  </div>
+
+  <!-- File Info Section -->
+  <div class="file-info" id="fileInfo">
+    <h2>About Your JSON File</h2>
+    <p>Upload a JSON file to generate visualizations. The file should be an array of objects.</p>
+    <p>Example structure:</p>
+    <pre>
+[
+  {
+    "key1": "value1",
+    "key2": "value2",
+    "key3": 123
+  },
+  ...
+]
+    </pre>
+  </div>
+
+  <!-- Visualizations -->
+  <div id="visualizations"></div>
+</body>
+</html>
