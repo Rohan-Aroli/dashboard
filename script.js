@@ -9,10 +9,13 @@ function handleFileUpload() {
     reader.onload = function (e) {
       try {
         data = JSON.parse(e.target.result);
+        if (!Array.isArray(data)) {
+          throw new Error("JSON file must be an array of objects.");
+        }
         updateFileInfo(data);
         generateVisualizations(data);
       } catch (error) {
-        alert("Invalid JSON file. Please upload a valid JSON file.");
+        alert(`Error: ${error.message}`);
       }
     };
     reader.readAsText(file);
@@ -24,12 +27,18 @@ function handleFileUpload() {
 // Function to update file info section
 function updateFileInfo(data) {
   const fileInfo = document.getElementById('fileInfo');
+  if (data.length === 0) {
+    fileInfo.innerHTML = `<h2>About Your JSON File</h2><p>Your file contains no records.</p>`;
+    return;
+  }
+
+  const keys = Object.keys(data[0]);
   fileInfo.innerHTML = `
     <h2>About Your JSON File</h2>
     <p>Your file contains <strong>${data.length} records</strong>.</p>
     <p>Here's a summary of the keys in your data:</p>
     <ul>
-      ${Object.keys(data[0]).map((key) => `<li><strong>${key}</strong>: ${typeof data[0][key]}</li>`).join('')}
+      ${keys.map((key) => `<li><strong>${key}</strong>: ${typeof data[0][key]}</li>`).join('')}
     </ul>
   `;
 }
@@ -39,15 +48,21 @@ function generateVisualizations(data) {
   const visualizations = document.getElementById('visualizations');
   visualizations.innerHTML = ''; // Clear previous visualizations
 
-  // Dynamically generate charts based on the keys in the JSON
-  Object.keys(data[0]).forEach((key) => {
-    if (typeof data[0][key] === 'number') {
-      // Generate a bar chart for numeric fields
-      const values = data.map((item) => item[key]);
-      const chartDiv = document.createElement('div');
-      chartDiv.className = 'chart';
-      visualizations.appendChild(chartDiv);
+  if (data.length === 0) {
+    visualizations.innerHTML = `<p>No data to visualize.</p>`;
+    return;
+  }
 
+  const keys = Object.keys(data[0]);
+
+  keys.forEach((key) => {
+    const values = data.map((item) => item[key]);
+    const chartDiv = document.createElement('div');
+    chartDiv.className = 'chart';
+    visualizations.appendChild(chartDiv);
+
+    if (typeof values[0] === 'number') {
+      // Generate a bar chart for numeric fields
       Plotly.newPlot(
         chartDiv,
         [
@@ -64,17 +79,12 @@ function generateVisualizations(data) {
           yaxis: { title: key },
         }
       );
-    } else if (typeof data[0][key] === 'string') {
+    } else if (typeof values[0] === 'string') {
       // Generate a pie chart for categorical fields
-      const categories = data.map((item) => item[key]);
       const counts = {};
-      categories.forEach((category) => {
-        counts[category] = (counts[category] || 0) + 1;
+      values.forEach((value) => {
+        counts[value] = (counts[value] || 0) + 1;
       });
-
-      const chartDiv = document.createElement('div');
-      chartDiv.className = 'chart';
-      visualizations.appendChild(chartDiv);
 
       Plotly.newPlot(
         chartDiv,
@@ -90,6 +100,9 @@ function generateVisualizations(data) {
           title: `Distribution of ${key}`,
         }
       );
+    } else {
+      // Unsupported data type
+      chartDiv.innerHTML = `<p>Unsupported data type for key: ${key}</p>`;
     }
   });
 }
